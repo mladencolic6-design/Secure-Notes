@@ -1,0 +1,38 @@
+# Python virtual environments
+venv/
+.venv/
+.venv310/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Databases and local application data
+instance/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+registered_data.json
+
+# User photos and uploaded attachments
+static/uploads/
+
+# Editor settings
+.idea/
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
