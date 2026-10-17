@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panou de administrare</title>
+    <style>
+        :root {
+            --bg-dark: #1A1A2E;
+            --bg-card: #16213E;
+            --bg-card-2: #10192f;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B8C1EC;
+            --text-hint: #7E88B6;
+            --accent-red: #E94560;
+            --accent-red-2: #C73652;
+            --accent-blue: #3a67ff;
+            --divider: rgba(255,255,255,0.08);
+            --shadow: 0 12px 30px rgba(0,0,0,0.26);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            height: 68px;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 18px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .toolbar-title {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: .02em;
+        }
+
+        .toolbar-meta {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-right a {
+            color: var(--accent-red);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 14px 12px 100px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .welcome-card,
+        .table-card,
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+
+        .stat-card {
+            padding: 18px;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .welcome-card {
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .welcome-card h2 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        .welcome-card p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .panel {
+            margin-bottom: 12px;
+        }
+
+        .panel-title {
+            margin: 0 0 10px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .accent-line {
+            width: 40px;
+            height: 3px;
+            background: var(--accent-red);
+            border-radius: 999px;
+            margin: 0 0 12px;
+        }
+
+        .users-table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--divider);
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--accent-red);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        td {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(233,69,96,0.12);
+            color: var(--accent-red);
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid rgba(233,69,96,0.22);
+        }
+
+        .badge.admin {
+            background: rgba(58,103,255,0.14);
+            color: #92acff;
+            border-color: rgba(58,103,255,0.2);
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .inline-form select,
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(233,69,96,0.18);
+            background: var(--bg-card-2);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .inline-form select {
+            width: auto;
+            min-width: 120px;
+            padding: 10px 12px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-hint);
+        }
+
+        .table-btn,
+        .button-row button {
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-red);
+            color: white;
+            font-weight: bold;
+            padding: 10px 14px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .button-row .secondary {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-primary);
+        }
+
+        .delete-btn {
+            background: #b8324b;
+        }
+
+        .note-preview {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 8, 24, 0.72);
+            z-index: 1300;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 860px;
+            background: var(--bg-card);
+            border-radius: 22px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: var(--accent-red);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        video, canvas {
+            width: 100%;
+            border-radius: 16px;
+            background: #0a122d;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .status {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            background: var(--bg-card-2);
+            color: var(--text-secondary);
+            line-height: 1.5;
+            border: 1px solid var(--divider);
+        }
+
+        .fab-stack {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1200;
+        }
+
+        .fab-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .fab {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 26px;
+            font-weight: bold;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab-main {
+            background: var(--accent-red);
+        }
+
+        .fab-chat {
+            background: var(--accent-blue);
+        }
+
+        .fab-user {
+            background: #243767;
+            font-size: 22px;
+        }
+
+        .fab-label {
+            position: absolute;
+            right: 76px;
+            background: var(--bg-card-2);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            border: 1px solid var(--divider);
+        }
+
+        .fab-item:hover .fab-label {
+            opacity: 1;
+        }
+
+        @media (max-width: 1100px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 720px) {
+            .toolbar {
+                height: auto;
+                padding: 14px 18px;
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .toolbar-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .fab-stack {
+                right: 16px;
+                bottom: 16px;
+            }
+
+            .fab {
+                width: 58px;
+                height: 58px;
+            }
+
+            .fab-label {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="toolbar">
+        <div>
+            <div class="toolbar-title">SecureNotes</div>
+            <div class="toolbar-meta">{{ current_user.name }} · {{ current_user.role }}</div>
+        </div>
+        <div class="toolbar-right">
+            <a href="{{ url_for('success') }}">Vizualizare utilizator</a>
+            <a href="{{ url_for('logout') }}">Deconectare</a>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="welcome-card">
+            <h2>Panou de administrare</h2>
+            <p>Prezentare generală a utilizatorilor, notițelor și autentificărilor, cu posibilitatea de a gestiona utilizatorii și conținutul.</p>
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <h3>Total utilizatori</h3>
+                <div class="value">{{ stats.users_count }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Autentificări reușite</h3>
+                <div class="value">{{ stats.success_count }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Autentificări eșuate</h3>
+                <div class="value">{{ stats.failed_count }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Notițe</h3>
+                <div class="value">{{ stats.notes_count }}</div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2 class="panel-title">Notițe</h2>
+            <div class="accent-line"></div>
+            <div class="table-card">
+                <div class="users-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Titlu</th>
+                                <th>Categorie</th>
+                                <th>Acces</th>
+                                <th>Fixată</th>
+                                <th>Previzualizare</th>
+                                <th>Acțiuni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for note in notes %}
+                            <tr>
+                                <td>{{ note.title }}</td>
+                                <td>{{ note.category }}</td>
+                                <td>{{ note.required_role or 'Toți' }}</td>
+                                <td>{{ 'Da' if note.is_pinned else 'Nu' }}</td>
+                                <td class="note-preview">{{ note.content_level1[:140] }}{% if note.content_level1|length > 140 %}...{% endif %}</td>
+                                <td>
+                                    <div class="inline-form">
+                                        <form method="POST" action="/admin/notes/{{ note.id }}/toggle-pin">
+                                            <button type="submit" class="table-btn">{{ 'Anulează fixarea' if note.is_pinned else 'Fixează' }}</button>
+                                        </form>
+                                        <form method="POST" action="/admin/notes/{{ note.id }}/delete" onsubmit="return confirm('Ștergi această notiță?');">
+                                            <button type="submit" class="table-btn delete-btn">Șterge</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6">Nu există notițe.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2 class="panel-title">Utilizatori</h2>
+            <div class="accent-line"></div>
+            <div class="table-card">
+                <div class="users-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nume</th>
+                                <th>Rol</th>
+                                <th>Tip</th>
+                                <th>Înregistrat</th>
+                                <th>Schimbă rolul</th>
+                                <th>Ștergere</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.name }}</td>
+                                <td><span class="badge">{{ user.role }}</span></td>
+                                <td>
+                                    {% if user.is_admin %}
+                                        <span class="badge admin">ADMIN</span>
+                                    {% else %}
+                                        <span class="badge">USER</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.registered_at.strftime('%d.%m.%Y %H:%M') if user.registered_at else '-' }}</td>
+                                <td>
+                                    <form method="POST" action="/admin/users/{{ user.id }}/role" class="inline-form">
+                                        <select name="role">
+                                            <option value="LEVEL1" {% if user.role =='LEVEL1' %}selected{% endif %}>LEVEL1</option>
+                                            <option value="LEVEL2" {% if user.role =='LEVEL2' %}selected{% endif %}>LEVEL2</option>
+                                            <option value="LEVEL3" {% if user.role =='LEVEL3' %}selected{% endif %}>LEVEL3</option>
+                                        </select>
+                                        <button type="submit" class="table-btn">Salvează</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    {% if not user.is_admin %}
+                                    <form method="POST"
+                                          action="/admin/users/{{ user.id }}/delete"
+                                          onsubmit="return confirm('Sigur vrei să ștergi utilizatorul {{ user.name }}?');">
+                                        <button type="submit" class="table-btn delete-btn">Șterge</button>
+                                    </form>
+                                    {% else %}
+                                        <span class="note-preview">Nu este permis</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7">Nu există utilizatori.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2 class="panel-title">Jurnale de autentificare</h2>
+            <div class="accent-line"></div>
+            <div class="table-card">
+                <div class="users-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ora</th>
+                                <th>Utilizator</th>
+                                <th>Status</th>
+                                <th>Adresă IP</th>
+                                <th>Distanță</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ log.timestamp.strftime('%d.%m.%Y %H:%M:%S') if log.timestamp else '-' }}</td>
+                                <td>{{ log.user.name if log.user else '-' }}</td>
+                                <td>{{ 'Reușit' if log.success else 'Eșuat' }}</td>
+                                <td>{{ log.ip_address or '-' }}</td>
+                                <td>
+                                    {% if log.distance is not none %}
+                                        {{ '%.4f'|format(log.distance) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5">Nu există jurnale.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="fab-stack">
+        <div class="fab-item">
+            <span class="fab-label">Adaugă utilizator</span>
+            <button class="fab fab-user" type="button" onclick="openRegisterModal()">👤</button>
+        </div>
+        <div class="fab-item">
+            <span class="fab-label">Chat</span>
+            <button class="fab fab-chat" type="button" onclick="goToChat()">💬</button>
+        </div>
+        <div class="fab-item">
+            <span class="fab-label">Notiță nouă</span>
+            <button class="fab fab-main" type="button" onclick="openNoteModal()">+</button>
+        </div>
+    </div>
+
+    <div id="noteModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Notiță nouă</h2>
+                <button type="button" class="close-btn" onclick="closeNoteModal()">Închide</button>
+            </div>
+
+            <form method="POST" action="/admin/notes/create" enctype="multipart/form-data" class="form-grid">
+                <input type="text" name="title" placeholder="Titlul notiței" required>
+                <textarea name="content_level1" placeholder="Conținut pentru LEVEL1" required></textarea>
+                <textarea name="content_level2" placeholder="Conținut pentru LEVEL2"></textarea>
+                <textarea name="content_level3" placeholder="Conținut pentru LEVEL3"></textarea>
+                <input type="text" name="category" placeholder="Categorie" value="Generale">
+
+                <select name="required_role">
+                    <option value="">Public pentru toate nivelurile</option>
+                    <option value="LEVEL1">LEVEL1</option>
+                    <option value="LEVEL2">LEVEL2</option>
+                    <option value="LEVEL3">LEVEL3</option>
+                </select>
+
+                <label style="display:flex; gap:10px; align-items:center;">
+                    <input type="checkbox" name="is_pinned" style="width:auto;">
+                    Fixează notița
+                </label>
+
+                <input type="file" name="attachment">
+
+                <div class="button-row">
+                    <button type="submit">Salvează notița</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Înregistrarea unui utilizator nou</h2>
+                <button type="button" class="close-btn" onclick="closeRegisterModal()">Închide</button>
+            </div>
+
+            <div class="form-grid">
+                <input type="text" id="newUserName" placeholder="Numele utilizatorului nou">
+                <video id="adminRegisterVideo" autoplay playsinline></video>
+                <canvas id="adminRegisterCanvas"></canvas>
+            </div>
+
+            <div class="button-row">
+                <button type="button" class="secondary" onclick="captureAdminUserPhoto()">Capturează fotografia</button>
+                <button type="button" onclick="registerNewUser()">Creează utilizatorul</button>
+            </div>
+
+            <div id="registerStatus" class="status">
+                Apasă pe înregistrare când vrei să adaugi un utilizator nou.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const noteModal = document.getElementById('noteModal');
+        const registerModal = document.getElementById('registerModal');
+        const adminVideo = document.getElementById('adminRegisterVideo');
+        const adminCanvas = document.getElementById('adminRegisterCanvas');
+        const registerStatus = document.getElementById('registerStatus');
+
+        let adminCapturedBlob = null;
+        let adminStream = null;
+
+        function openNoteModal() {
+            noteModal.classList.add('active');
+        }
+
+        function closeNoteModal() {
+            noteModal.classList.remove('active');
+        }
+
+        function goToChat() {
+            window.location.href = '/chat';
+        }
+
+        async function startAdminRegisterCamera() {
+            try {
+                adminStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false
+                });
+                adminVideo.srcObject = adminStream;
+                registerStatus.textContent = 'Camera pentru înregistrarea utilizatorului a fost pornită.';
+            } catch (err) {
+                registerStatus.textContent = 'Eroare la pornirea camerei: ' + err.message;
+            }
+        }
+
+        function stopAdminRegisterCamera() {
+            if (adminStream) {
+                adminStream.getTracks().forEach(track => track.stop());
+                adminStream = null;
+            }
+            if (adminVideo) {
+                adminVideo.srcObject = null;
+            }
+        }
+
+        function openRegisterModal() {
+            registerModal.classList.add('active');
+            registerStatus.textContent = 'Pornirea camerei...';
+            adminCapturedBlob = null;
+            startAdminRegisterCamera();
+        }
+
+        function closeRegisterModal() {
+            registerModal.classList.remove('active');
+            stopAdminRegisterCamera();
+            adminCapturedBlob = null;
+            document.getElementById('newUserName').value = '';
+            registerStatus.textContent = 'Înregistrarea este închisă.';
+        }
+
+        function captureAdminUserPhoto() {
+            if (!adminVideo || !adminStream) {
+                registerStatus.textContent = 'Camera nu este pornită.';
+                return;
+            }
+
+            const context = adminCanvas.getContext('2d');
+            adminCanvas.width = adminVideo.videoWidth || 640;
+            adminCanvas.height = adminVideo.videoHeight || 480;
+            context.drawImage(adminVideo, 0, 0, adminCanvas.width, adminCanvas.height);
+
+            adminCanvas.toBlob((blob) => {
+                adminCapturedBlob = blob;
+                registerStatus.textContent = 'Fotografia noului utilizator a fost capturată cu succes.';
+            }, 'image/jpeg');
+        }
+
+        async function registerNewUser() {
+            const name = document.getElementById('newUserName').value.trim();
+
+            if (!name) {
+                registerStatus.textContent = 'Introdu numele noului utilizator.';
+                return;
+            }
+
+            if (!adminCapturedBlob) {
+                registerStatus.textContent = 'Mai întâi capturează fotografia.';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('photo', adminCapturedBlob, 'new_user.jpg');
+
+            registerStatus.textContent = 'Se creează utilizatorul...';
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                registerStatus.textContent = data.message;
+
+                if (data.success) {
+                    stopAdminRegisterCamera();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 900);
+                }
+            } catch (err) {
+                registerStatus.textContent = 'Eroare: ' + err.message;
+            }
+        }
+
+        window.addEventListener('beforeunload', stopAdminRegisterCamera);
+
+        noteModal.addEventListener('click', function (e) {
+            if (e.target === noteModal) {
+                closeNoteModal();
+            }
+        });
+
+        registerModal.addEventListener('click', function (e) {
+            if (e.target === registerModal) {
+                closeRegisterModal();
+            }
+        });
+    </script>
+</body>
+</html>

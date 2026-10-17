@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autentificare facială web</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0b1738, #162a63);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 780px;
+            background: rgba(20, 36, 84, 0.95);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 44px;
+        }
+
+        .subtitle {
+            color: #d7ddff;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin: 0 auto 18px;
+            max-width: 420px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #30468a;
+            background: #0e1a43;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #aab6e8;
+        }
+
+        .camera-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        video, canvas {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 20px;
+            background: #0a122d;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+            background: #ea4c68;
+            font-weight: bold;
+            min-width: 180px;
+        }
+
+        button:hover {
+            opacity: 0.95;
+        }
+
+        .status {
+            margin-top: 22px;
+            background: #0d1739;
+            border-radius: 16px;
+            padding: 18px;
+            color: #e6ebff;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .card {
+                padding: 22px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Autentificare facială web</h1>
+        <div class="subtitle">
+            Introdu numele tău, privește spre cameră și apasă pe Autentificare.
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="name" placeholder="Introdu numele tău">
+        </div>
+
+        <div class="camera-wrap">
+            <video id="video" autoplay playsinline></video>
+        </div>
+
+        <canvas id="canvas"></canvas>
+
+        <div class="actions">
+            <button type="button" onclick="loginUser()">Autentificare</button>
+        </div>
+
+        <div class="status" id="status">
+            Pornește camera, introdu numele și apasă pe Autentificare.
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const statusBox = document.getElementById('status');
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false
+                });
+                video.srcObject = stream;
+                statusBox.textContent = 'Camera a fost pornită cu succes.';
+            } catch (err) {
+                statusBox.textContent = 'Eroare la pornirea camerei: ' + err.message;
+            }
+        }
+
+        function captureCurrentFrame() {
+            return new Promise((resolve) => {
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg');
+            });
+        }
+
+        async function loginUser() {
+            const name = document.getElementById('name').value.trim();
+
+            if (!name) {
+                statusBox.textContent = 'Introdu numele tău.';
+                return;
+            }
+
+            statusBox.textContent = 'Se pregătește fotografia...';
+
+            const photoBlob = await captureCurrentFrame();
+
+            if (!photoBlob) {
+                statusBox.textContent = 'Fotografia nu poate fi preluată de la cameră.';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('photo', photoBlob, 'login.jpg');
+
+            statusBox.textContent = 'Autentificare în curs...';
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                statusBox.textContent = data.message;
+
+                if (data.success && data.redirect_url) {
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 700);
+                }
+            } catch (err) {
+                statusBox.textContent = 'Eroare: ' + err.message;
+            }
+        }
+
+        startCamera();
+    </script>
+</body>
+</html>

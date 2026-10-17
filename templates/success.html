@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureNotes</title>
+    <style>
+        :root {
+            --bg-dark: #1A1A2E;
+            --bg-card: #16213E;
+            --bg-card-2: #10192f;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B8C1EC;
+            --text-hint: #7E88B6;
+            --accent-red: #E94560;
+            --accent-red-2: #C73652;
+            --divider: rgba(255,255,255,0.08);
+            --shadow: 0 12px 30px rgba(0,0,0,0.26);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: Arial, sans-serif;
+        }
+        .toolbar {
+            height: 68px;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 18px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+        .toolbar-title {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: .02em;
+        }
+        .toolbar-meta {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .toolbar-right a {
+            color: var(--accent-red);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            margin-left: 12px;
+        }
+        .page {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 14px 12px 32px;
+        }
+        .search-card,
+        .welcome-card,
+        .note-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+        .welcome-card {
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+        .welcome-card h2 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+        .welcome-card p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+        .search-card {
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(233,69,96,0.32);
+            background: var(--bg-card-2);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 15px;
+        }
+        .search-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .category-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .category-scroll::-webkit-scrollbar { height: 6px; }
+        .category-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
+        .chip {
+            border: 1px solid var(--divider);
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            border-radius: 999px;
+            text-decoration: none;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .chip.active {
+            color: var(--accent-red);
+            border-color: rgba(233,69,96,0.42);
+            background: rgba(233,69,96,0.09);
+        }
+        .btn-search {
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-red);
+            color: white;
+            font-weight: bold;
+            padding: 12px 18px;
+            cursor: pointer;
+            min-width: 130px;
+        }
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .note-card {
+            padding: 20px;
+            margin: 0;
+        }
+        .note-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .note-category {
+            flex: 1;
+            color: var(--accent-red);
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+        .note-pin {
+            font-size: 14px;
+        }
+        .accent-line {
+            width: 40px;
+            height: 3px;
+            background: var(--accent-red);
+            border-radius: 999px;
+            margin: 0 0 12px;
+        }
+        .note-title {
+            margin: 0 0 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .note-preview {
+            margin: 0 0 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+        .note-date {
+            color: var(--text-hint);
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+        .note-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .note-role {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        .open-link {
+            text-decoration: none;
+            color: white;
+            background: rgba(233,69,96,0.14);
+            border: 1px solid rgba(233,69,96,0.24);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .chip-icon {
+            margin-right: 6px;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        .chip-label {
+            vertical-align: middle;
+        }
+
+        .fab-chat {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: #E94560;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(233,69,96,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <header class="toolbar">
+        <div>
+            <div class="toolbar-title">SecureNotes</div>
+            <div class="toolbar-meta">{{ user_name }} · {{ user_role }}</div>
+        </div>
+        <div class="toolbar-right">
+            {% if session.get('is_admin') %}
+                <a href="{{ url_for('admin_dashboard') }}">Panou</a>
+            {% endif %}
+            <a href="{{ url_for('chat') }}">Chat</a>
+            <a href="{{ url_for('logout') }}">Deconectare</a>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="welcome-card">
+            <h2>Bine ai venit, {{ user_name }}!</h2>
+        </section>
+
+        <section class="search-card">
+            <form class="search-form" method="GET" action="{{ url_for('success') }}">
+                <input class="search-input" type="text" name="q" placeholder="Caută în notițe..." value="{{ search_query }}">
+                <div class="search-row">
+                    <button class="btn-search" type="submit">Caută</button>
+                </div>
+                <div class="category-scroll">
+                    <a class="chip {% if not selected_category %}active{% endif %}"
+                       href="{{ url_for('success', q=search_query) }}">
+                        <span class="chip-icon">📋</span>
+                        <span class="chip-label">Toate</span>
+                    </a>
+
+                    {% for category in categories %}
+                        {% set icon = '📝' %}
+                        {% if category == 'Serviciu' %}
+                            {% set icon = '💼' %}
+                        {% elif category == 'Urgent' %}
+                            {% set icon = '⏱️' %}
+                        {% elif category == 'Important' %}
+                            {% set icon = '⭐' %}
+                        {% elif category == 'Ședință' %}
+                            {% set icon = '📅' %}
+                        {% elif category == 'Idee' %}
+                            {% set icon = '💡' %}
+                        {% elif category == 'Privat' %}
+                            {% set icon = '🔒' %}
+                        {% endif %}
+
+                        <a class="chip {% if selected_category == category %}active{% endif %}"
+                           href="{{ url_for('success', category=category, q=search_query) }}">
+                            <span class="chip-icon">{{ icon }}</span>
+                            <span class="chip-label">{{ category }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </form>
+        </section>
+
+        <section class="notes-list">
+            {% for item in notes_view %}
+            <article class="note-card">
+                <div class="note-top">
+                    <div class="note-category">{{ item.note.category or 'Generale' }}</div>
+                    {% if item.note.is_pinned %}<div class="note-pin">📌</div>{% endif %}
+                </div>
+                <div class="accent-line"></div>
+                <h3 class="note-title">{{ item.note.title }}</h3>
+                <p class="note-preview">{{ item.preview }}</p>
+                <div class="note-date">{{ item.note.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                <div class="note-actions">
+                    <div class="note-role">Acces: {{ item.note.required_role or 'Public' }}</div>
+                    {% if item.can_open %}
+                        <a class="open-link" href="{{ url_for('note_detail', note_id=item.note.id) }}">Deschide detalii</a>
+                    {% endif %}
+                </div>
+            </article>
+            {% else %}
+            <article class="note-card">
+                <div class="accent-line"></div>
+                <h3 class="note-title">Niciun rezultat</h3>
+                <p class="note-preview">În prezent nu există notițe de afișat pentru filtrele selectate.</p>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+
+    <button class="fab-chat" type="button" onclick="window.location.href='{{ url_for('chat') }}'">
+        👤
+    </button>
+</body>
+</html>
